@@ -2,7 +2,6 @@ package ru.yandex.practicum.service.sensor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.kafka.KafkaClient;
@@ -22,19 +21,17 @@ public class SensorEventService implements EventService<SensorEvent> {
     @Override
     public void send(SensorEvent event) {
         SensorEventAvro sensorEventAvro = toAvro(event);
-        kafkaClient.getProducer().send(new ProducerRecord<>(topic, sensorEventAvro));
+        kafkaClient.send(topic, event.getHubId(), event.getTimestamp(), sensorEventAvro);
         log.info("Ивент: {}, отправлен в топик: {}", event, topic);
     }
 
     private SensorEventAvro toAvro(SensorEvent event) {
-        log.info("Определение формата ивента");
         Object payload = switch (event.getType()) {
             case CLIMATE_SENSOR_EVENT -> toClimateSensorAvro((ClimateSensorEvent) event);
             case LIGHT_SENSOR_EVENT -> toLightSensorAvro((LightSensorEvent) event);
             case MOTION_SENSOR_EVENT -> toMotionSensorAvro((MotionSensorEvent) event);
             case SWITCH_SENSOR_EVENT -> toSwitchSensorAvro((SwitchSensorEvent) event);
             case TEMPERATURE_SENSOR_EVENT -> toTemperatureSensorAvro((TemperatureSensorEvent) event);
-            default -> throw new IllegalArgumentException("Неподдерживаемый тип ивента: " + event.getClass().getName());
         };
 
         return SensorEventAvro.newBuilder()
@@ -46,7 +43,6 @@ public class SensorEventService implements EventService<SensorEvent> {
     }
 
     private ClimateSensorAvro toClimateSensorAvro(ClimateSensorEvent event) {
-        log.info("Определен датчик Climate Sensor,переводим в Avro..");
         return ClimateSensorAvro.newBuilder()
                 .setCo2Level(event.getCo2Level())
                 .setHumidity(event.getHumidity())
@@ -55,7 +51,6 @@ public class SensorEventService implements EventService<SensorEvent> {
     }
 
     private LightSensorAvro toLightSensorAvro(LightSensorEvent event) {
-        log.info("Определен датчик Light Sensor,переводим в Avro..");
         return LightSensorAvro.newBuilder()
                 .setLuminosity(event.getLuminosity())
                 .setLinkQuality(event.getLinkQuality())
@@ -63,7 +58,6 @@ public class SensorEventService implements EventService<SensorEvent> {
     }
 
     private MotionSensorAvro toMotionSensorAvro(MotionSensorEvent event) {
-        log.info("Определен датчик Motion Sensor,переводим в Avro..");
         return MotionSensorAvro.newBuilder()
                 .setMotion(event.getMotion())
                 .setLinkQuality(event.getLinkQuality())
@@ -72,14 +66,12 @@ public class SensorEventService implements EventService<SensorEvent> {
     }
 
     private SwitchSensorAvro toSwitchSensorAvro(SwitchSensorEvent event) {
-        log.info("Определен датчик Switch Sensor,переводим в Avro..");
         return SwitchSensorAvro.newBuilder()
                 .setState(event.getState())
                 .build();
     }
 
     private TemperatureSensorAvro toTemperatureSensorAvro(TemperatureSensorEvent event) {
-        log.info("Определен датчик Temperature Sensor,переводим в Avro..");
         return TemperatureSensorAvro.newBuilder()
                 .setTemperatureC(event.getTemperatureC())
                 .setTemperatureF(event.getTemperatureF())

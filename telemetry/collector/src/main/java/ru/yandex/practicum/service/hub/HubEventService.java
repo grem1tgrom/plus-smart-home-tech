@@ -2,9 +2,7 @@ package ru.yandex.practicum.service.hub;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.kafka.KafkaClient;
 import ru.yandex.practicum.kafka.telemetry.event.*;
@@ -25,18 +23,16 @@ public class HubEventService implements EventService<HubEvent> {
     @Override
     public void send(HubEvent event) {
         HubEventAvro hubEventAvro = toAvro(event);
-        kafkaClient.getProducer().send(new ProducerRecord<>(topic, hubEventAvro));
+        kafkaClient.send(topic, event.getHubId(), event.getTimestamp(), hubEventAvro);
         log.info("Ивент: {}, отправлен в топик: {}", event, topic);
     }
 
     private HubEventAvro toAvro(HubEvent event) {
-        log.info("Определение формата ивента");
         Object payload = switch (event.getType()) {
             case DEVICE_ADDED -> toDeviceAddedAvro((DeviceAddedEvent) event);
             case DEVICE_REMOVED -> toDeviceRemovedAvro((DeviceRemovedEvent) event);
             case SCENARIO_ADDED -> toScenarioAddedAvro((ScenarioAddedEvent) event);
             case SCENARIO_REMOVED -> toScenarioRemovedAvro((ScenarioRemovedEvent) event);
-            default -> throw new IllegalArgumentException("Неподдерживаемый тип ивента: " + event.getType());
         };
 
         return HubEventAvro.newBuilder()
@@ -47,7 +43,6 @@ public class HubEventService implements EventService<HubEvent> {
     }
 
     private DeviceAddedEventAvro toDeviceAddedAvro(DeviceAddedEvent event) {
-        log.info("Определен формат Device Added,переводим в Avro..");
         return DeviceAddedEventAvro.newBuilder()
                 .setId(event.getId())
                 .setType(DeviceTypeAvro.valueOf(event.getDeviceType().name()))
@@ -55,20 +50,19 @@ public class HubEventService implements EventService<HubEvent> {
     }
 
     private DeviceRemovedEventAvro toDeviceRemovedAvro(DeviceRemovedEvent event) {
-        log.info("Определен формат Device Removed,переводим в Avro..");
         return DeviceRemovedEventAvro.newBuilder()
                 .setId(event.getId())
                 .build();
     }
 
     private ScenarioAddedEventAvro toScenarioAddedAvro(ScenarioAddedEvent event) {
-        log.info("Определен формат Scenario Added,переводим в Avro..");
         List<DeviceActionAvro> deviceActionAvroList = event.getActions().stream()
                 .map(this::toDeviceActionAvro)
                 .toList();
         List<ScenarioConditionAvro> scenarioConditionAvroList = event.getConditions().stream()
                 .map(this::toScenarioConditionAvro)
                 .toList();
+
         return ScenarioAddedEventAvro.newBuilder()
                 .setName(event.getName())
                 .setActions(deviceActionAvroList)
@@ -77,14 +71,12 @@ public class HubEventService implements EventService<HubEvent> {
     }
 
     private ScenarioRemovedEventAvro toScenarioRemovedAvro(ScenarioRemovedEvent event) {
-        log.info("Определен формат Scenario Removed,переводим в Avro..");
         return ScenarioRemovedEventAvro.newBuilder()
                 .setName(event.getName())
                 .build();
     }
 
     private DeviceActionAvro toDeviceActionAvro(DeviceAction action) {
-        log.info("Перевод тип действия устройства в Avro");
         return DeviceActionAvro.newBuilder()
                 .setType(ActionTypeAvro.valueOf(action.getType().name()))
                 .setSensorId(action.getSensorId())
@@ -93,7 +85,6 @@ public class HubEventService implements EventService<HubEvent> {
     }
 
     private ScenarioConditionAvro toScenarioConditionAvro(ScenarioCondition condition) {
-        log.info("Перевод условия сценария в Avro");
         return ScenarioConditionAvro.newBuilder()
                 .setSensorId(condition.getSensorId())
                 .setType(ConditionTypeAvro.valueOf(condition.getType().name()))
