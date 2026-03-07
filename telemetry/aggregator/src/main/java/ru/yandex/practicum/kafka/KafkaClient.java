@@ -1,12 +1,14 @@
 package ru.yandex.practicum.kafka;
 
 import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 
-public interface KafkaClient extends AutoCloseable {
+public interface KafkaClient {
 
     Producer<String, SpecificRecordBase> getProducer();
 
-    @Override
-    void close();
+    Consumer<String, SpecificRecordBase> getConsumer();
+
+    void stop();
 }
