@@ -1,9 +1,11 @@
 package ru.yandex.practicum.kafka;
 
 import org.apache.avro.specific.SpecificRecordBase;
-
-import java.time.Instant;
+import org.apache.kafka.clients.producer.Producer;
 
 public interface KafkaClient {
-    void send(String topic, String key, Instant timestamp, SpecificRecordBase event);
+
+    Producer<String, SpecificRecordBase> getProducer();
+
+    void stop();
 }
