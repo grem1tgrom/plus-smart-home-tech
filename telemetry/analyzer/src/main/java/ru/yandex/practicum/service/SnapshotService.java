@@ -74,7 +74,6 @@ public class SnapshotService {
             case TEMPERATURE -> checkValue(condition, ((ClimateSensorAvro) state.getData()).getTemperatureC());
             case CO2LEVEL -> checkValue(condition, ((ClimateSensorAvro) state.getData()).getCo2Level());
             case HUMIDITY -> checkValue(condition, ((ClimateSensorAvro) state.getData()).getHumidity());
-            default -> false;
         };
     }
 
@@ -84,7 +83,6 @@ public class SnapshotService {
             case EQUALS -> Objects.equals(value, expected);
             case GREATER_THAN -> value > expected;
             case LOWER_THAN -> value < expected;
-            default -> false;
         };
     }
 }

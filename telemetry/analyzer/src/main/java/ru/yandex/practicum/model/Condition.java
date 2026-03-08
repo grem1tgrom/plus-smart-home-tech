@@ -3,7 +3,6 @@ package ru.yandex.practicum.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro;
 
@@ -12,7 +11,6 @@ import ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro;
 @SecondaryTable(name = "scenario_conditions", pkJoinColumns = @PrimaryKeyJoinColumn(name = "condition_id"))
 @Getter
 @Setter
-@ToString
 public class Condition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

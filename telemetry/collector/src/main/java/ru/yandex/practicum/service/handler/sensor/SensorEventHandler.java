@@ -7,3 +7,4 @@ public interface SensorEventHandler {
 
     void handle(SensorEventProto event);
 }
+

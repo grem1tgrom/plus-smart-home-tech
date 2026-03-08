@@ -7,74 +7,52 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import ru.yandex.practicum.kafka.config.KafkaClientProperties;
 
 import java.util.Properties;
 
 @Configuration
+@EnableConfigurationProperties(KafkaClientProperties.class)
 public class KafkaClientConfig {
 
     @Bean
-    KafkaClient getClient() {
-        return new KafkaClient() {
-            @Value("${kafka.bootstrap-servers}")
-            private String bootstrapServers;
-            @Value("${kafka.producer.key-serializer}")
-            private String keySerializer;
-            @Value("${kafka.producer.value-serializer}")
-            private String valueSerializer;
-            @Value("${kafka.consumer.key-deserializer}")
-            private String keyDeserializer;
-            @Value("${kafka.consumer.value-deserializer}")
-            private String valueDeserializer;
-            @Value("${kafka.consumer.group-id}")
-            private String idGroup;
+    public Properties producerProperties(KafkaClientProperties props) {
+        Properties p = new Properties();
+        p.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.getBootstrapServers());
+        p.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, props.getProducer().getKeySerializer());
+        p.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, props.getProducer().getValueSerializer());
+        p.put(ProducerConfig.CLIENT_ID_CONFIG, props.getProducer().getClientId());
+        return p;
+    }
 
-            private Producer<String, SpecificRecordBase> producer;
-            private Consumer<String, SpecificRecordBase> consumer;
+    @Bean
+    public Producer<String, SpecificRecordBase> producer(Properties producerProperties) {
+        return new KafkaProducer<>(producerProperties);
+    }
 
-            @Override
-            public Producer<String, SpecificRecordBase> getProducer() {
-                if (producer == null) {
-                    initProducer();
-                }
-                return producer;
-            }
+    @Bean
+    public Properties consumerProperties(KafkaClientProperties props) {
+        Properties c = new Properties();
+        c.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, props.getBootstrapServers());
+        c.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, props.getConsumer().getKeyDeserializer());
+        c.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, props.getConsumer().getValueDeserializer());
+        c.put(ConsumerConfig.GROUP_ID_CONFIG, props.getConsumer().getGroupId());
+        c.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, String.valueOf(props.getConsumer().getEnableAutoCommit()));
+        c.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, props.getConsumer().getAutoOffsetReset());
+        return c;
+    }
 
-            private void initProducer() {
-                Properties config = new Properties();
-                config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-                config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
-                config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
-                producer = new KafkaProducer<>(config);
-            }
+    @Bean
+    public Consumer<String, SpecificRecordBase> consumer(Properties consumerProperties) {
+        return new KafkaConsumer<>(consumerProperties);
+    }
 
-            @Override
-            public void stop() {
-                if (producer != null) {
-                    producer.close();
-                }
-            }
-
-            @Override
-            public Consumer<String, SpecificRecordBase> getConsumer() {
-                if (consumer == null) {
-                    initConsumer();
-                }
-                return consumer;
-            }
-
-            private void initConsumer() {
-                Properties config = new Properties();
-                config.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-                config.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
-                config.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
-                config.setProperty(ConsumerConfig.GROUP_ID_CONFIG, idGroup);
-                consumer = new KafkaConsumer<>(config);
-            }
-        };
+    @Bean
+    public KafkaClient kafkaClient(Producer<String, SpecificRecordBase> producer,
+                                   Consumer<String, SpecificRecordBase> consumer) {
+        return new KafkaClientImpl(producer, consumer);
     }
 }

@@ -3,7 +3,6 @@ package ru.yandex.practicum.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 
 
@@ -12,7 +11,6 @@ import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 @SecondaryTable(name = "scenario_actions", pkJoinColumns = @PrimaryKeyJoinColumn(name = "action_id"))
 @Getter
 @Setter
-@ToString
 public class Action {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
