@@ -14,9 +14,14 @@ import java.util.concurrent.Future;
 
 @Slf4j
 @RequiredArgsConstructor
-public class KafkaClientImpl implements KafkaClient, AutoCloseable {
+public class KafkaClientImpl implements KafkaClient {
 
     private final Producer<String, SpecificRecordBase> producer;
+
+    @Override
+    public Producer<String, SpecificRecordBase> getProducer() {
+        return producer;
+    }
 
     @Override
     public void send(String topic, String key, Instant timestamp, SpecificRecordBase event) {
@@ -40,7 +45,7 @@ public class KafkaClientImpl implements KafkaClient, AutoCloseable {
                     eventClass, metadata.topic(), metadata.partition(), metadata.offset());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("Не удалось записать событие {} в топик {} (interrupt)", eventClass, topic, e);
+            log.warn("��е удалось записать событие {} в топик {} (interrupt)", eventClass, topic, e);
         } catch (ExecutionException e) {
             log.warn("Не удалось записать событие {} в топик {}", eventClass, topic, e);
         }
