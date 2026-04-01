@@ -10,15 +10,15 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class DimensionDto {
-    @DecimalMin(value = "1.0", inclusive = true)
+    @DecimalMin("1.0")
     @NotNull
     private Double width;
 
-    @DecimalMin(value = "1.0", inclusive = true)
+    @DecimalMin("1.0")
     @NotNull
     private Double height;
 
-    @DecimalMin(value = "1.0", inclusive = true)
+    @DecimalMin("1.0")
     @NotNull
     private Double depth;
 }

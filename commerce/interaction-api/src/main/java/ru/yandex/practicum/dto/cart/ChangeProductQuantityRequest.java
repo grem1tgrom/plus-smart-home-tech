@@ -1,6 +1,7 @@
 package ru.yandex.practicum.dto.cart;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,6 @@ public class ChangeProductQuantityRequest {
     private UUID productId;
 
     @NotNull
-    private long newQuantity;
+    @Positive
+    private Long newQuantity;
 }
