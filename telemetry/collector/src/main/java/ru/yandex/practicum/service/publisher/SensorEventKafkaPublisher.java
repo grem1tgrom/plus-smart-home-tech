@@ -1,15 +1,13 @@
 package ru.yandex.practicum.service.publisher;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.KafkaClient;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
-@Slf4j
+import java.time.Instant;
+
 @Component
 @RequiredArgsConstructor
 public class SensorEventKafkaPublisher {
@@ -20,15 +18,9 @@ public class SensorEventKafkaPublisher {
     private String topic;
 
     public void publish(SensorEventAvro event) {
-        ProducerRecord<String, SpecificRecordBase> record = new ProducerRecord<>(
-                topic,
-                null,
-                event.getTimestamp() != null ? event.getTimestamp().toEpochMilli() : null,
-                event.getHubId(),
-                event
-        );
+        String hubId = event.getHubId().toString();
+        Instant ts = event.getTimestamp() != null ? event.getTimestamp() : Instant.now();
 
-        kafkaClient.getProducer().send(record);
-        log.info("Ивент: {} отправлен в топик: {}", event, topic);
+        kafkaClient.send(topic, hubId, ts, event);
     }
 }
