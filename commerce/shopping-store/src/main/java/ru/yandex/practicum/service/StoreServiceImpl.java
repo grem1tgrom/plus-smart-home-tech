@@ -43,14 +43,15 @@ public class StoreServiceImpl implements StoreService {
             productDto.setProductState(ProductState.ACTIVE);
         }
         if (productDto.getQuantityState() == null) {
-            productDto.setQuantityState(QuantityState.ENDED);
+            productDto.setQuantityState(QuantityState.FEW);
         }
         if (productDto.getProductCategory() == null) {
             productDto.setProductCategory(ProductCategory.CONTROL);
         }
 
         Product product = mapper.toProduct(productDto);
-        return mapper.toDto(productRepository.save(product));
+        Product saved = productRepository.save(product);
+        return mapper.toDto(saved);
     }
 
     @Override
