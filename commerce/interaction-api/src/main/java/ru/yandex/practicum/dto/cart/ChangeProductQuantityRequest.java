@@ -1,5 +1,6 @@
 package ru.yandex.practicum.dto.cart;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -19,5 +20,6 @@ public class ChangeProductQuantityRequest {
 
     @NotNull
     @Positive
+    @JsonProperty("quantity")
     private Long newQuantity;
 }

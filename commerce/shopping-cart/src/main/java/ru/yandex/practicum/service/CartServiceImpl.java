@@ -27,7 +27,7 @@ public class CartServiceImpl implements CartService {
     private final ShoppingCartMapper mapper;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public ShoppingCartDto getCart(String username) {
         log.info("Получение корзины пользователя: {}", username);
 
@@ -65,7 +65,6 @@ public class CartServiceImpl implements CartService {
 
             cart.getProducts().merge(productId, quantity, Long::sum);
         }
-
 
         try {
             warehouseClient.checkProductQuantity(mapper.toDto(cart));
