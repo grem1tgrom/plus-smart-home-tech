@@ -1,8 +1,12 @@
 package ru.yandex.practicum.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.dto.cart.ChangeProductQuantityRequest;
@@ -19,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/shopping-cart")
 @Slf4j
+@Validated
 public class ShoppingCartController implements ShoppingCartClient {
     private final CartService cartService;
 
@@ -29,9 +34,11 @@ public class ShoppingCartController implements ShoppingCartClient {
     }
 
     @Override
-    public ShoppingCartDto addProductToCart(String username, Map<UUID, Long> products) {
+    public ShoppingCartDto addProductToCart(
+            String username,
+            @Valid @NotNull @NotEmpty Map<@NotNull UUID, @NotNull @Positive Long> products
+    ) {
         checkUser(username);
-        validateProductsMap(products);
         return cartService.addProductToCart(username, products);
     }
 
@@ -42,9 +49,11 @@ public class ShoppingCartController implements ShoppingCartClient {
     }
 
     @Override
-    public ShoppingCartDto removeFromCart(String username, Set<UUID> productIds) {
+    public ShoppingCartDto removeFromCart(
+            String username,
+            @NotNull @NotEmpty Set<@NotNull UUID> productIds
+    ) {
         checkUser(username);
-        validateProductIds(productIds);
         return cartService.removeFromCart(username, productIds);
     }
 
@@ -58,35 +67,6 @@ public class ShoppingCartController implements ShoppingCartClient {
         log.info("Проверка авторизации пользователем");
         if (username == null || username.isBlank()) {
             throw new NotAuthorizedUserException("Пользователь не авторизован");
-        }
-    }
-
-    private void validateProductsMap(Map<UUID, Long> products) {
-        log.info("Валидации списка продукции");
-        if (products == null || products.isEmpty()) {
-            throw new IllegalArgumentException("Список товаров не должен быть пустым");
-        }
-
-        for (Map.Entry<UUID, Long> entry : products.entrySet()) {
-            if (entry.getKey() == null) {
-                throw new IllegalArgumentException("productId не должен быть null");
-            }
-            if (entry.getValue() == null || entry.getValue() < 1) {
-                throw new IllegalArgumentException(
-                        "Количество товара должно быть больше 0"
-                );
-            }
-        }
-    }
-
-    private void validateProductIds(Set<UUID> productIds) {
-        log.info("Валидация списка id продукции");
-        if (productIds == null || productIds.isEmpty()) {
-            throw new IllegalArgumentException("Список productIds не должен быть пустым");
-        }
-
-        if (productIds.contains(null)) {
-            throw new IllegalArgumentException("productId не должен быть null");
         }
     }
 }
