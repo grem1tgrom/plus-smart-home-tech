@@ -1,7 +1,13 @@
 package ru.yandex.practicum.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.cart.ChangeProductQuantityRequest;
 import ru.yandex.practicum.dto.cart.ShoppingCartDto;
@@ -17,13 +23,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/shopping-cart")
 @Slf4j
+@Validated
 public class ShoppingCartController implements ShoppingCartClient {
 
     private final CartService cartService;
 
     @Override
     @GetMapping
-    public ShoppingCartDto getCart(@RequestParam String username) {
+    public ShoppingCartDto getCart(@RequestParam @NotBlank String username) {
         checkUser(username);
         return cartService.getCart(username);
     }
@@ -31,19 +38,20 @@ public class ShoppingCartController implements ShoppingCartClient {
     @Override
     @PutMapping
     public ShoppingCartDto addProductToCart(
-            @RequestParam String username,
-            @RequestBody Map<UUID, Long> products
+            @RequestParam @NotBlank String username,
+            @RequestBody
+            @Valid
+            @NotNull
+            @NotEmpty
+            Map<@NotNull UUID, @NotNull @Positive Long> products
     ) {
         checkUser(username);
-        if (products == null || products.isEmpty()) {
-            throw new IllegalArgumentException("Список товаров не должен быть пустым");
-        }
         return cartService.addProductToCart(username, products);
     }
 
     @Override
     @DeleteMapping
-    public void deleteCart(@RequestParam String username) {
+    public void deleteCart(@RequestParam @NotBlank String username) {
         checkUser(username);
         cartService.deleteCart(username);
     }
@@ -51,26 +59,24 @@ public class ShoppingCartController implements ShoppingCartClient {
     @Override
     @PostMapping("/remove")
     public ShoppingCartDto removeFromCart(
-            @RequestParam String username,
-            @RequestBody(required = false) Set<UUID> productIds
+            @RequestParam @NotBlank String username,
+            @RequestBody
+            @Valid
+            @NotNull
+            @NotEmpty
+            Set<@NotNull UUID> productIds
     ) {
         checkUser(username);
-        if (productIds == null || productIds.isEmpty()) {
-            throw new IllegalArgumentException("Список productIds не должен быть пустым");
-        }
         return cartService.removeFromCart(username, productIds);
     }
 
     @Override
     @PostMapping("/change-quantity")
     public ShoppingCartDto changeProductQuantity(
-            @RequestParam String username,
-            @RequestBody(required = false) ChangeProductQuantityRequest request
+            @RequestParam @NotBlank String username,
+            @RequestBody @Valid @NotNull ChangeProductQuantityRequest request
     ) {
         checkUser(username);
-        if (request == null) {
-            throw new IllegalArgumentException("Тело запроса не должно быть пустым");
-        }
         return cartService.changeProductQuantity(username, request);
     }
 
