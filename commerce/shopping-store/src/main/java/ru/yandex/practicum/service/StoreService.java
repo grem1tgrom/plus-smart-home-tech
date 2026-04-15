@@ -2,10 +2,13 @@ package ru.yandex.practicum.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import ru.yandex.practicum.dto.store.ProductDto;
 import ru.yandex.practicum.dto.store.ProductCategory;
+import ru.yandex.practicum.dto.store.ProductDto;
 import ru.yandex.practicum.dto.store.QuantityState;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public interface StoreService {
@@ -20,4 +23,6 @@ public interface StoreService {
     Boolean updateQuantityState(UUID productId, QuantityState quantityState);
 
     ProductDto getProductById(UUID productId);
+
+    Map<UUID, BigDecimal> getPrices(Set<UUID> ids);
 }

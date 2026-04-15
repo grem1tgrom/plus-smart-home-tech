@@ -14,4 +14,10 @@ public interface WarehouseService {
     void addProductToWarehouse(AddProductToWarehouseRequest request);
 
     AddressDto getWarehouseAddress();
+
+    ru.yandex.practicum.dto.warehouse.BookedProductsDto assembleProducts(ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest request);
+
+    void acceptReturn(java.util.Map<java.util.UUID, java.lang.Long> products);
+
+    void shipToDelivery(ru.yandex.practicum.dto.warehouse.ShippedToDeliveryRequest request);
 }

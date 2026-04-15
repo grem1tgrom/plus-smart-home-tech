@@ -12,12 +12,16 @@ import ru.yandex.practicum.dto.store.QuantityState;
 import ru.yandex.practicum.feign.ShoppingStoreClient;
 import ru.yandex.practicum.service.StoreService;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/shopping-store")
 public class ShoppingStoreController implements ShoppingStoreClient {
+
     private final StoreService storeService;
 
     @Override
@@ -48,5 +52,10 @@ public class ShoppingStoreController implements ShoppingStoreClient {
     @Override
     public ProductDto getProductById(UUID productId) {
         return storeService.getProductById(productId);
+    }
+
+    @Override
+    public Map<UUID, BigDecimal> getPrices(Set<UUID> ids) {
+        return storeService.getPrices(ids);
     }
 }

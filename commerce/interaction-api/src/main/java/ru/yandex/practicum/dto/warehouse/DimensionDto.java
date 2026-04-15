@@ -1,24 +1,23 @@
 package ru.yandex.practicum.dto.warehouse;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class DimensionDto {
-    @DecimalMin("1.0")
-    @NotNull
-    private Double width;
 
-    @DecimalMin("1.0")
-    @NotNull
-    private Double height;
+    @DecimalMin(value = "1.0")
+    private double width;
 
-    @DecimalMin("1.0")
-    @NotNull
-    private Double depth;
+    @DecimalMin(value = "1.0")
+    private double height;
+
+    @DecimalMin(value = "1.0")
+    private double depth;
 }

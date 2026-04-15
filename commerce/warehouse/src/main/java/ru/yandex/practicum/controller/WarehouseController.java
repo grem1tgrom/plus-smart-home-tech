@@ -37,4 +37,19 @@ public class WarehouseController implements WarehouseClient {
     public AddressDto getWarehouseAddress() {
         return warehouseService.getWarehouseAddress();
     }
+
+    @Override
+    public ru.yandex.practicum.dto.warehouse.BookedProductsDto assembleProducts(@jakarta.validation.Valid ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest request) {
+        return warehouseService.assembleProducts(request);
+    }
+
+    @Override
+    public void acceptReturn(java.util.Map<java.util.UUID, java.lang.Long> products) {
+        warehouseService.acceptReturn(products);
+    }
+
+    @Override
+    public void shipToDelivery(ru.yandex.practicum.dto.warehouse.ShippedToDeliveryRequest request) {
+        warehouseService.shipToDelivery(request);
+    }
 }

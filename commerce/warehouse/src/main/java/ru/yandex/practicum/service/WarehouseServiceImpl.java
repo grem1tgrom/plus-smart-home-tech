@@ -133,4 +133,23 @@ public class WarehouseServiceImpl implements WarehouseService {
         log.info("Расчет объема продукта (id): {}", productId);
         return dimension.getWidth() * dimension.getHeight() * dimension.getDepth();
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public ru.yandex.practicum.dto.warehouse.BookedProductsDto assembleProducts(ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest request) {
+        log.info("Сборка товаров для заказа: {}", request);
+        return null;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void acceptReturn(java.util.Map<java.util.UUID, java.lang.Long> products) {
+        log.info("Возврат товаров на склад: {}", products);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void shipToDelivery(ru.yandex.practicum.dto.warehouse.ShippedToDeliveryRequest request) {
+        log.info("Передача товаров в доставку: {}", request);
+    }
 }
