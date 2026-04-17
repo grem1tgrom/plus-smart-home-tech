@@ -10,6 +10,7 @@ import ru.yandex.practicum.dto.order.OrderDto;
 import ru.yandex.practicum.dto.order.OrderState;
 import ru.yandex.practicum.dto.order.ProductReturnRequest;
 import ru.yandex.practicum.dto.payment.PaymentDto;
+import ru.yandex.practicum.dto.warehouse.AddressDto;
 import ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.dto.warehouse.BookedProductsDto;
 import ru.yandex.practicum.exception.NoOrderFoundException;
@@ -54,9 +55,12 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         order = orderRepository.save(order);
 
+        AddressDto warehouseAddress = warehouseClient.getWarehouseAddress();
+
         DeliveryDto deliveryDto = DeliveryDto.builder()
                 .orderId(order.getOrderId())
                 .toAddress(request.getDeliveryAddress())
+                .fromAddress(warehouseAddress)
                 .build();
 
         log.info("Отправляем запрос на создание доставки {}", deliveryDto);
