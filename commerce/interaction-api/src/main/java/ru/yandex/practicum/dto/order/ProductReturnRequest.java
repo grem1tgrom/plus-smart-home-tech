@@ -1,9 +1,10 @@
 package ru.yandex.practicum.dto.order;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.*;
 
 import java.util.Map;
 import java.util.UUID;
@@ -12,9 +13,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductReturnRequest {
-    @NotBlank
+    @NotNull
     private UUID orderId;
 
-    @NotBlank
+    @NotEmpty
     private Map<UUID, Long> products;
 }
