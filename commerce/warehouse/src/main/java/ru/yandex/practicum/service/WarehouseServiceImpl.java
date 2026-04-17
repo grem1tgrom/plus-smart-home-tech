@@ -7,14 +7,19 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.dto.cart.ShoppingCartDto;
 import ru.yandex.practicum.dto.warehouse.AddProductToWarehouseRequest;
 import ru.yandex.practicum.dto.warehouse.AddressDto;
+import ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.dto.warehouse.BookedProductsDto;
 import ru.yandex.practicum.dto.warehouse.NewProductInWarehouseRequest;
+import ru.yandex.practicum.dto.warehouse.ShippedToDeliveryRequest;
+import ru.yandex.practicum.exception.NoBookingFoundException;
 import ru.yandex.practicum.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.exception.ProductNotFoundException;
 import ru.yandex.practicum.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.mapper.WarehouseMapper;
 import ru.yandex.practicum.model.Dimension;
+import ru.yandex.practicum.model.OrderBooking;
 import ru.yandex.practicum.model.ProductInWarehouse;
+import ru.yandex.practicum.repository.OrderBookingRepository;
 import ru.yandex.practicum.repository.WarehouseRepository;
 
 import java.security.SecureRandom;
@@ -27,6 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WarehouseServiceImpl implements WarehouseService {
     private final WarehouseRepository warehouseRepository;
+    private final OrderBookingRepository orderBookingRepository;
     private final WarehouseMapper mapper;
 
     private static final String[] ADDRESSES = {"ADDRESS_1", "ADDRESS_2"};
@@ -135,21 +141,75 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public ru.yandex.practicum.dto.warehouse.BookedProductsDto assembleProducts(ru.yandex.practicum.dto.warehouse.AssemblyProductsForOrderRequest request) {
-        log.info("Сборка товаров для заказа: {}", request);
-        return null;
+    @Transactional
+    public BookedProductsDto assembleProducts(AssemblyProductsForOrderRequest request) {
+        log.info("Сборка товаров для заказа: {}", request.getOrderId());
+
+        Set<UUID> productIds = request.getProducts().keySet();
+        List<ProductInWarehouse> items = warehouseRepository.findAllByProductIdIn(productIds);
+
+        Map<UUID, ProductInWarehouse> warehouseMap = items.stream()
+                .collect(Collectors.toMap(ProductInWarehouse::getProductId, Function.identity()));
+
+        double totalWeight = 0;
+        double totalVolume = 0;
+        boolean fragile = false;
+
+        for (Map.Entry<UUID, Long> entry : request.getProducts().entrySet()) {
+            UUID productId = entry.getKey();
+            long quantityRequested = entry.getValue();
+            ProductInWarehouse product = warehouseMap.get(productId);
+
+            if (product == null || product.getQuantity() < quantityRequested) {
+                throw new ProductNotFoundException("Недостаточно товара " + productId + " на складе для сборки заказа");
+            }
+
+            product.setQuantity(product.getQuantity() - quantityRequested);
+            warehouseRepository.save(product);
+
+            double productVolume = calculatedVolume(product.getDimension(), productId);
+            totalWeight += product.getWeight() * quantityRequested;
+            totalVolume += productVolume * quantityRequested;
+
+            if (product.isFragile()) {
+                fragile = true;
+            }
+        }
+
+        OrderBooking booking = OrderBooking.builder()
+                .orderId(request.getOrderId())
+                .build();
+        orderBookingRepository.save(booking);
+
+        return new BookedProductsDto(
+                totalWeight,
+                totalVolume,
+                fragile
+        );
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public void acceptReturn(java.util.Map<java.util.UUID, java.lang.Long> products) {
+    @Transactional
+    public void acceptReturn(Map<UUID, Long> products) {
         log.info("Возврат товаров на склад: {}", products);
+
+        for (Map.Entry<UUID, Long> entry : products.entrySet()) {
+            warehouseRepository.findById(entry.getKey()).ifPresent(product -> {
+                product.setQuantity(product.getQuantity() + entry.getValue());
+                warehouseRepository.save(product);
+                log.info("Возвращено {} единиц товара {}", entry.getValue(), entry.getKey());
+            });
+        }
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public void shipToDelivery(ru.yandex.practicum.dto.warehouse.ShippedToDeliveryRequest request) {
-        log.info("Передача товаров в доставку: {}", request);
+    @Transactional
+    public void shipToDelivery(ShippedToDeliveryRequest request) {
+        log.info("Передача товаров в доставку для заказа: {}", request.getOrderId());
+
+        OrderBooking booking = orderBookingRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new NoBookingFoundException("Бронь не найдена для заказа: " + request.getOrderId()));
+
+        orderBookingRepository.delete(booking);
     }
 }
