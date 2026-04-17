@@ -2,6 +2,7 @@ package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.dto.delivery.DeliveryDto;
@@ -28,11 +29,20 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final DeliveryMapper mapper;
 
-    private static final BigDecimal BASE_COST = BigDecimal.valueOf(5.0);
-    private static final BigDecimal FRAGILE_RATE = BigDecimal.valueOf(0.2);
-    private static final BigDecimal WEIGHT_RATE = BigDecimal.valueOf(0.3);
-    private static final BigDecimal VOLUME_RATE = BigDecimal.valueOf(0.2);
-    private static final BigDecimal STREET_RATE = BigDecimal.valueOf(0.2);
+    @Value("${delivery.rates.base-cost:5.0}")
+    private BigDecimal baseCost;
+
+    @Value("${delivery.rates.fragile:0.2}")
+    private BigDecimal fragileRate;
+
+    @Value("${delivery.rates.weight:0.3}")
+    private BigDecimal weightRate;
+
+    @Value("${delivery.rates.volume:0.2}")
+    private BigDecimal volumeRate;
+
+    @Value("${delivery.rates.street:0.2}")
+    private BigDecimal streetRate;
 
     @Override
     @Transactional
@@ -92,7 +102,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public BigDecimal calculateCost(OrderDto orderDto) {
         log.info("Расчет стоимости доставки по заказу {}", orderDto.getOrderId());
         Delivery delivery = findDeliveryByOrderId(orderDto.getOrderId());
-        BigDecimal cost = BASE_COST;
+        BigDecimal cost = baseCost;
 
         AddressDto warehouseAddress = warehouseClient.getWarehouseAddress();
         String street = warehouseAddress.getStreet();
@@ -102,31 +112,31 @@ public class DeliveryServiceImpl implements DeliveryService {
         if ("ADDRESS_1".equals(street)) {
             cost = cost.multiply(BigDecimal.valueOf(1));
             log.info("К базовой стоимость доставки ({}) прибавляем налог склада  \"ADDRESS_1\", получив {}",
-                    BASE_COST, cost);
+                    baseCost, cost);
         } else if ("ADDRESS_2".equals(street)) {
             cost = cost.add(cost.multiply(BigDecimal.valueOf(2)));
             log.info("К базовой стоимости доставки ({}) прибавляем налог склада \"ADDRESS_2\", получив {}",
-                    BASE_COST, cost);
+                    baseCost, cost);
         }
 
         if (orderDto.getFragile()) {
-            cost = cost.add(cost.multiply(FRAGILE_RATE));
-            log.info("К стоимости доставки прибавляем налог (ставка {}) за хрупкость, получив {}",FRAGILE_RATE, cost);
+            cost = cost.add(cost.multiply(fragileRate));
+            log.info("К стоимости доставки прибавляем налог (ставка {}) за хрупкость, получив {}", fragileRate, cost);
         }
 
         cost = cost.add(BigDecimal.valueOf(orderDto.getDeliveryWeight())
-                .multiply(WEIGHT_RATE));
-        log.info("К стоимости доставки прибавляем налог (ставка {}) за вес, получив {}",WEIGHT_RATE, cost);
+                .multiply(weightRate));
+        log.info("К стоимости доставки прибавляем налог (ставка {}) за вес, получив {}", weightRate, cost);
 
-        cost = cost.add(BigDecimal.valueOf(orderDto.getDeliveryWeight())
-                .multiply(VOLUME_RATE));
-        log.info("К стоимости доставки прибавляем налог (ставка {}) за объем, получив {}",VOLUME_RATE, cost);
+        cost = cost.add(BigDecimal.valueOf(orderDto.getDeliveryVolume())
+                .multiply(volumeRate));
+        log.info("К стоимости доставки прибавляем налог (ставка {}) за объем, получив {}", volumeRate, cost);
 
 
         if (!delivery.getToAddress().getStreet().equals(street)) {
-            cost = cost.add(cost.multiply(STREET_RATE));
+            cost = cost.add(cost.multiply(streetRate));
             log.info("Улица доставки и склада не совпадает, добавляем налог по курьеру (ставка {}), получив {}",
-                    STREET_RATE, cost);
+                    streetRate, cost);
         }
 
         log.info("Общая стоимость доставки выход лит: {}", cost);
