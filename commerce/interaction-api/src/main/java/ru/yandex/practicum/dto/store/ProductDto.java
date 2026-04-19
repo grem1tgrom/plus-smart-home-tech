@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDto {
@@ -36,5 +36,5 @@ public class ProductDto {
 
     @NotNull
     @DecimalMin(value = "1.0")
-    private Float price;
+    private BigDecimal price;
 }

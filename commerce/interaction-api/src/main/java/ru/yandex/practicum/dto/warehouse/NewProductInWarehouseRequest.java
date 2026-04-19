@@ -6,8 +6,7 @@ import lombok.*;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,6 +20,6 @@ public class NewProductInWarehouseRequest {
     private DimensionDto dimension;
 
     @NotNull
-    @DecimalMin(value = "1.0", inclusive = true)
+    @DecimalMin(value = "1.0")
     private Double weight;
 }

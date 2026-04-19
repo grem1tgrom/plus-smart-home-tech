@@ -100,7 +100,7 @@ public class CartServiceImpl implements CartService {
             );
         }
 
-        cart.getProducts().put(productId, request.getNewQuantity());
+        cart.getProducts().put(productId, request.getQuantity());
 
         return mapper.toDto(cartRepository.save(cart));
     }

@@ -3,8 +3,7 @@ package ru.yandex.practicum.dto.warehouse;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

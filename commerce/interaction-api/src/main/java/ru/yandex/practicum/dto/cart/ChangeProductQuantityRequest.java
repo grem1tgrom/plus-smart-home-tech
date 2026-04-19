@@ -1,15 +1,14 @@
 package ru.yandex.practicum.dto.cart;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeProductQuantityRequest {
@@ -17,5 +16,6 @@ public class ChangeProductQuantityRequest {
     private UUID productId;
 
     @NotNull
-    private Long newQuantity;
+    @Positive
+    private Long quantity;
 }
